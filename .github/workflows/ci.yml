@@ -1,0 +1,48 @@
+name: CI - Real Estate LangGraph App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:24.0.2
+        options: --privileged
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up Docker Compose
+        run: sudo apt-get update && sudo apt-get install -y docker-compose
+
+      - name: Build and Start Docker Compose Services
+        run: |
+          docker-compose -f docker-compose.yml up -d --build
+
+      - name: Wait for Services to be Healthy
+        run: |
+          echo "Waiting for containers to become healthy..."
+          sleep 30  # You can fine-tune this or use curl to test endpoints
+
+      - name: Verify LangGraph App is Running
+        run: |
+          curl --fail http://localhost:8001 || exit 1
+
+      # Optional: Add your test step here (e.g., pytest)
+      - name: Run Tests (optional)
+        run: |
+          echo "Insert tests here. Example: pytest"
+
+      - name: Stop Docker Compose
+        if: always()
+        run: docker-compose -f docker-compose.yml down
