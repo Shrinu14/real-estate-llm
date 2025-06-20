@@ -23,12 +23,9 @@ services:
       - ./cli_main.py:/app/cli_main.py
       - ./requirements.txt:/app/requirements.txt
     depends_on:
-      mongo-v2:
-        condition: service_healthy
-      redis-v2:
-        condition: service_healthy
-      milvus-standalone-v2:
-        condition: service_healthy
+      - mongo-v2
+      - redis-v2
+      - milvus-standalone-v2
     restart: unless-stopped
 
   milvus-standalone-v2:
@@ -49,10 +46,11 @@ services:
       - etcd-v2
       - minio-v2
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:19121"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "curl -sf http://localhost:19121 || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
     restart: unless-stopped
 
   etcd-v2:
@@ -121,12 +119,12 @@ services:
     container_name: redis-v2
     ports:
       - "6380:6379"
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 volumes:
   milvus_data_v2:
