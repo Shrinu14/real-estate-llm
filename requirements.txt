@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+pydantic
+pymilvus
+sentence-transformers
+langchain
+guardrails-ai
+fasttext-wheel
+loguru
+langgraph
+deep-translator
+transformers
+torch
+sentencepiece

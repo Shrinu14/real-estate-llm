@@ -1,0 +1,38 @@
+[project]
+name = "real-estate-langgraph"
+version = "0.1.0"
+description = "Real Estate Search System using LangGraph, Chroma/Milvus, RAG, Guardrails, and LLMs"
+authors = [
+    { name = "Shrinivas V A", email = "shrinivas@example.com" }  # Optional: add your email if publishing
+]
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "langgraph>=0.0.38",
+    "langchain>=0.2.0",
+    "langchain-community>=0.2.0",
+    "langchain-chroma>=0.2.0",
+    "langchain-huggingface>=0.2.0",
+    "sentence-transformers>=2.2.2",
+    "transformers>=4.38.0",
+    "torch>=2.2.0",
+    "sentencepiece",                # Needed for MarianMT tokenizer
+    "langdetect>=1.0.9",
+    "loguru>=0.7.2",
+    "guardrails-ai>=0.4.2",
+    "deep-translator>=1.11.4",
+    "pymilvus>=2.3.4",
+    "sacremoses",
+    "fasttext-wheel"               # For light-weight fasttext install
+]
+
+[build-system]
+requires = ["setuptools>=67.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app", "guardrails"]
+include-package-data = true

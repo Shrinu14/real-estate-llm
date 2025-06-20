@@ -1,0 +1,25 @@
+Metadata-Version: 2.4
+Name: real-estate-langgraph
+Version: 0.1.0
+Summary: Real Estate Search System using LangGraph, Chroma/Milvus, RAG, Guardrails, and LLMs
+Author-email: Shrinivas V A <shrinivas@example.com>
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.110
+Requires-Dist: uvicorn[standard]>=0.29
+Requires-Dist: langgraph>=0.0.38
+Requires-Dist: langchain>=0.2.0
+Requires-Dist: langchain-community>=0.2.0
+Requires-Dist: langchain-chroma>=0.2.0
+Requires-Dist: langchain-huggingface>=0.2.0
+Requires-Dist: sentence-transformers>=2.2.2
+Requires-Dist: transformers>=4.38.0
+Requires-Dist: torch>=2.2.0
+Requires-Dist: sentencepiece
+Requires-Dist: langdetect>=1.0.9
+Requires-Dist: loguru>=0.7.2
+Requires-Dist: guardrails-ai>=0.4.2
+Requires-Dist: deep-translator>=1.11.4
+Requires-Dist: pymilvus>=2.3.4
+Requires-Dist: sacremoses
+Requires-Dist: fasttext-wheel

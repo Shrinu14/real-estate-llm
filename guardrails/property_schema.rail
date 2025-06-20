@@ -1,0 +1,33 @@
+schema property_schema
+
+property_name: str @length(min=3, max=100)
+property_type: enum("Apartment", "House", "Condo", "Villa", "Studio", "Townhouse", "Office Space", "Land")
+
+location: str @length(min=5, max=200)
+city: str @length(min=2, max=100)
+state: str @length(min=2, max=100)
+zipcode: str @regex(r"^\d{5}(-\d{4})?$") optional
+
+price: float @min(0)
+price_currency: enum("INR", "USD", "EUR", "GBP", "AED", "AUD") default("INR")
+
+bedrooms: int @min(0) @max(20) optional
+bathrooms: int @min(0) @max(20) optional
+area_sqft: float @min(0) optional
+
+furnishing_status: enum("Furnished", "Semi-furnished", "Unfurnished") optional
+availability: enum("Available", "Sold", "Under Construction", "Rented") default("Available")
+
+contact_name: str @length(min=3, max=100) optional
+contact_phone: str @regex(r"^\+?[\d\s-]{7,15}$") optional
+contact_email: str @regex(r"^[\w\.-]+@[\w\.-]+\.\w+$") optional
+
+amenities: list[str] @max_items(20) optional
+description: str @length(min=0, max=1000) optional
+
+language: enum("en", "hi", "es", "fr", "de", "zh", "ar") default("en")
+
+source_document_id: str optional
+extraction_confidence: float @min(0) @max(1) optional
+
+end

@@ -1,0 +1,135 @@
+# version: '3.8'
+
+services:
+  langgraph-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: langgraph_real_estate_app_v2
+    command: ["./wait-for-services.sh", "uvicorn", "cli_main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+    ports:
+      - "8001:8001"
+    environment:
+      MILVUS_HOST: milvus-standalone-v2
+      MILVUS_PORT: 19530
+      REDIS_HOST: redis-v2
+      REDIS_PORT: 6379
+      MONGO_URI: mongodb://mongo-v2:27017
+      MONGO_HOST: mongo-v2
+      MONGO_PORT: 27017
+      LANGGRAPH_MULTILINGUAL: "true"
+    volumes:
+      - ./src:/app/src
+      - ./cli_main.py:/app/cli_main.py
+      - ./requirements.txt:/app/requirements.txt
+    depends_on:
+      mongo-v2:
+        condition: service_healthy
+      redis-v2:
+        condition: service_healthy
+      milvus-standalone-v2:
+        condition: service_healthy
+    restart: unless-stopped
+
+  milvus-standalone-v2:
+    image: milvusdb/milvus:v2.2.11
+    container_name: milvus-standalone-v2
+    command: ["milvus", "run", "standalone"]
+    ports:
+      - "19531:19530"  # gRPC external
+      - "19122:19121"  # REST external
+    volumes:
+      - milvus_data_v2:/var/lib/milvus
+    environment:
+      ETCD_ENDPOINTS: etcd-v2:2379
+      MINIO_ADDRESS: minio-v2:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    depends_on:
+      - etcd-v2
+      - minio-v2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:19121"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  etcd-v2:
+    image: quay.io/coreos/etcd:v3.5.5
+    container_name: etcd-v2
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd-v2:2379
+    ports:
+      - "2380:2379"
+    volumes:
+      - etcd_data_v2:/etcd
+    restart: unless-stopped
+
+  minio-v2:
+    image: minio/minio:latest
+    container_name: minio-v2
+    ports:
+      - "9002:9000"  # S3 API
+      - "9003:9001"  # Console
+    volumes:
+      - minio_data_v2:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  attu-v2:
+    image: zilliz/attu:v2.2.1
+    container_name: milvus-attu-v2
+    ports:
+      - "3001:3000"
+    environment:
+      MILVUS_URL: http://milvus-standalone-v2:19121
+    depends_on:
+      - milvus-standalone-v2
+    restart: unless-stopped
+
+  mongo-v2:
+    image: mongo:6.0
+    container_name: mongo-v2
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_data_v2:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "admin", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      start_period: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis-v2:
+    image: redis:7
+    container_name: redis-v2
+    ports:
+      - "6380:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  milvus_data_v2:
+  minio_data_v2:
+  mongo_data_v2:
+  etcd_data_v2:
