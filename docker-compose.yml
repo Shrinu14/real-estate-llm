@@ -56,7 +56,7 @@ services:
       interval: 20s
       timeout: 10s
       retries: 10
-      start_period: 40s
+      start_period: 60s
     restart: unless-stopped
 
   etcd-v2:
