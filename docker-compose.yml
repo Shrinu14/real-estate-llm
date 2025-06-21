@@ -22,12 +22,13 @@ services:
       - ./src:/app/src
       - ./cli_main.py:/app/cli_main.py
       - ./requirements.txt:/app/requirements.txt
+      - ./wait-for-services.sh:/app/wait-for-services.sh
     depends_on:
       - mongo-v2
       - redis-v2
       - milvus-standalone-v2
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8001/health || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8001/docs || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -35,12 +36,12 @@ services:
     restart: unless-stopped
 
   milvus-standalone-v2:
-    image: milvusdb/milvus:v2.2.9  # ✅ Downgraded from v2.2.11
+    image: milvusdb/milvus:v2.2.9
     container_name: milvus-standalone-v2
     command: ["milvus", "run", "standalone"]
     ports:
-      - "19531:19530"  # gRPC
-      - "19122:19121"  # REST
+      - "19530:19530"  # gRPC
+      - "9091:9091"    # REST
     volumes:
       - milvus_data_v2:/var/lib/milvus
     environment:
@@ -52,7 +53,7 @@ services:
       - etcd-v2
       - minio-v2
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:19121 || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:9091/healthz || exit 1"]
       interval: 20s
       timeout: 10s
       retries: 10
@@ -97,7 +98,7 @@ services:
     ports:
       - "3001:3000"
     environment:
-      MILVUS_URL: http://milvus-standalone-v2:19121
+      MILVUS_URL: http://milvus-standalone-v2:9091
     depends_on:
       - milvus-standalone-v2
     restart: unless-stopped

@@ -25,14 +25,14 @@ until nc -z milvus-standalone-v2 19530; do
 done
 echo "✅ Milvus gRPC is up."
 
-# Wait for Milvus REST API (true readiness)
-until curl -sf http://milvus-standalone-v2:19121 > /dev/null; do
-  echo "⏳ Waiting for Milvus REST API on port 19121..."
+# Wait for Milvus REST API (true readiness check)
+until curl -sf http://milvus-standalone-v2:9091/healthz > /dev/null; do
+  echo "⏳ Waiting for Milvus REST API on port 9091..."
   sleep 5
 done
 echo "✅ Milvus REST API is ready."
 
 echo "🚀 All services ready. Starting the application..."
 
-# Run the actual application command passed in CMD
+# Run the actual application command passed via CMD
 exec "$@"
