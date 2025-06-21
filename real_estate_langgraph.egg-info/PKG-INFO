@@ -22,4 +22,5 @@ Requires-Dist: guardrails-ai>=0.4.2
 Requires-Dist: deep-translator>=1.11.4
 Requires-Dist: pymilvus>=2.3.4
 Requires-Dist: sacremoses
+Requires-Dist: pytest
 Requires-Dist: fasttext-wheel
