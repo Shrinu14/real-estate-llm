@@ -1,30 +1,24 @@
-# Assuming you use a Python image
+# Use a lightweight Python image
 FROM python:3.10-slim
 
-# Set work directory
+# Set working directory
 WORKDIR /app
-
 ENV PYTHONPATH=/app
 
-# Install system dependencies
+# Install system dependencies (for netcat in wait script)
 RUN apt-get update \
-    && apt-get install -y netcat-openbsd \
+    && apt-get install -y netcat-openbsd curl \
     && rm -rf /var/lib/apt/lists/*
 
-
-# Install Python dependencies
+# Copy Python requirements and install
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app files
+# Copy the rest of the application
 COPY . .
 
+# Ensure wait script is executable (inside the /app dir)
+RUN chmod +x /app/wait-for-services.sh
 
-# Make wait script executable
-COPY wait-for-services.sh /wait-for-services.sh
-RUN chmod +x /wait-for-services.sh
-
-CMD ["/wait-for-services.sh", "uvicorn", "cli_main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
-
-
-# Default command is overridden in docker-compose
+# Set default command (will be overridden by docker-compose anyway)
+CMD ["./wait-for-services.sh", "uvicorn", "cli_main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
