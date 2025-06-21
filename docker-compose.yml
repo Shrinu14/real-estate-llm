@@ -35,12 +35,12 @@ services:
     restart: unless-stopped
 
   milvus-standalone-v2:
-    image: milvusdb/milvus:v2.2.11
+    image: milvusdb/milvus:v2.2.9  # ✅ Downgraded from v2.2.11
     container_name: milvus-standalone-v2
     command: ["milvus", "run", "standalone"]
     ports:
-      - "19531:19530"
-      - "19122:19121"
+      - "19531:19530"  # gRPC
+      - "19122:19121"  # REST
     volumes:
       - milvus_data_v2:/var/lib/milvus
     environment:
