@@ -20,5 +20,8 @@ COPY . .
 # Ensure wait script is executable (inside the /app dir)
 RUN chmod +x /app/wait-for-services.sh
 
-# Set default command (will be overridden by docker-compose anyway)
-CMD ["./wait-for-services.sh", "uvicorn", "cli_main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+# Tell Render which port to expose
+EXPOSE 8001
+
+# Use PORT from Render or default to 8001
+CMD ["./wait-for-services.sh", "uvicorn", "cli_main:app", "--host", "0.0.0.0", "--port", "${PORT:-8001}", "--reload"]
