@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: langgraph_real_estate_app_v2
-    command: ["./wait-for-services.sh", "uvicorn", "cli_main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+    command: ["./wait-for-services.sh", "uvicorn", "cli_main:app", "--host", "0.0.0.0", "--port", "8001"]
     ports:
       - "8001:8001"
     environment:
@@ -14,7 +14,7 @@ services:
       MILVUS_PORT: 19530
       REDIS_HOST: redis-v2
       REDIS_PORT: 6379
-      MONGO_URI: mongodb://mongo-v2:27017
+      MONGO_URI: mongodb://admin:password@mongo-v2:27017
       MONGO_HOST: mongo-v2
       MONGO_PORT: 27017
       LANGGRAPH_MULTILINGUAL: "true"
@@ -40,8 +40,8 @@ services:
     container_name: milvus-standalone-v2
     command: ["milvus", "run", "standalone"]
     ports:
-      - "19530:19530"  # gRPC
-      - "9091:9091"    # REST
+      - "19530:19530"
+      - "9091:9091"
     volumes:
       - milvus_data_v2:/var/lib/milvus
     environment:

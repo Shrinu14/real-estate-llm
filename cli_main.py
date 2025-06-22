@@ -3,24 +3,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from app.rag import add_document, search  # ✅ Uses Chroma
+from app.rag import add_document, search
 from app.translator import translate_to_english
 from app.guardrails_output import validate_property_output
 import os
 import logging
 import json
-# --------------------
+
+# ------------------------
 # Logger Configuration
-# --------------------
+# ------------------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("real_estate_api")
 
-# --------------------
-# Initialize FastAPI App
-# --------------------
+# ------------------------
+# FastAPI App Initialization
+# ------------------------
 app = FastAPI(
     title="Real Estate Search API",
-    description="Multilingual RAG-based Real Estate Search using Chroma + Guardrails",
+    description="Multilingual RAG-based Real Estate Search using Chroma and Guardrails",
     version="1.0.0",
     openapi_tags=[
         {"name": "Add", "description": "Add new property documents"},
@@ -30,39 +31,36 @@ app = FastAPI(
     ]
 )
 
-# --------------------
+# ------------------------
 # CORS Configuration
-# --------------------
+# ------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 🔒 Use ["https://yourdomain.com"] in production
+    allow_origins=["*"],  # Change to specific domain in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --------------------
-# Request Model
-# --------------------
+# ------------------------
+# Pydantic Model
+# ------------------------
 class FolderPathInput(BaseModel):
-    folder_path : str
-    
+    folder_path: str
 
-# --------------------
-# Health Check
-# --------------------
+# ------------------------
+# Health Check Endpoint
+# ------------------------
 @app.get("/health", tags=["Health"])
 def health_check():
     return {"status": "ok", "message": "API is healthy"}
 
-# --------------------
-# Add Property Document
-# --------------------
-
+# ------------------------
+# Bulk Ingest Endpoint
+# ------------------------
 @app.post("/bulk-ingest", tags=["Add"])
 def bulk_ingest_from_folder(data: FolderPathInput):
     folder = data.folder_path
-
     if not os.path.exists(folder):
         raise HTTPException(status_code=404, detail=f"Folder not found: {folder}")
     
@@ -71,12 +69,11 @@ def bulk_ingest_from_folder(data: FolderPathInput):
 
     for filename in os.listdir(folder):
         if filename.endswith(".json"):
+            filepath = os.path.join(folder, filename)
             try:
-                filepath = os.path.join(folder, filename)
                 with open(filepath, "r", encoding="utf-8") as f:
                     property_data = json.load(f)
 
-                # Basic structure handling - adjust keys to match your RERA JSON
                 title = property_data.get("title", "Unknown Title")
                 location = property_data.get("location", "Unknown Location")
                 price = property_data.get("price", 0)
@@ -86,7 +83,6 @@ def bulk_ingest_from_folder(data: FolderPathInput):
                 description = property_data.get("description", "")
                 language = property_data.get("language", "en")
 
-                # Create full text for embedding
                 full_text = (
                     f"Title: {title}\n"
                     f"Location: {location}\n"
@@ -116,9 +112,9 @@ def bulk_ingest_from_folder(data: FolderPathInput):
         "total_processed": len(inserted_ids) + len(failed_files)
     }
 
-# --------------------
-# Search Properties
-# --------------------
+# ------------------------
+# Search Endpoint
+# ------------------------
 @app.get("/search", tags=["Search"])
 def search_properties(
     q: str = Query(..., description="Search query for real estate"),
@@ -129,7 +125,6 @@ def search_properties(
         query = q
 
         if language.lower() != "en":
-            logger.info(f"Translating search query from {language} to English")
             query = translate_to_english(query)
 
         results = search(query)
@@ -149,14 +144,18 @@ def search_properties(
         logger.exception("Search failed")
         raise HTTPException(status_code=500, detail=f"Error during search: {e}")
 
-# --------------------
+# ------------------------
 # Serve React Frontend
-# --------------------
-app.mount("/static", StaticFiles(directory="frontend_build/static"), name="static")
+# ------------------------
+frontend_dir = "frontend_build"
+static_dir = os.path.join(frontend_dir, "static")
+
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 @app.get("/", tags=["Frontend"])
 def serve_react_index():
-    index_path = "frontend_build/index.html"
+    index_path = os.path.join(frontend_dir, "index.html")
     if os.path.exists(index_path):
         logger.info("Serving frontend index.html")
         return FileResponse(index_path)
@@ -165,8 +164,7 @@ def serve_react_index():
 
 @app.get("/{full_path:path}", tags=["Frontend"])
 def catch_all(full_path: str):
-    fallback = "frontend_build/index.html"
+    fallback = os.path.join(frontend_dir, "index.html")
     if os.path.exists(fallback):
-        logger.info(f"Fallback route triggered: /{full_path}")
         return FileResponse(fallback)
     return {"error": "Page not found"}
