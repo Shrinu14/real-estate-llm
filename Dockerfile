@@ -21,7 +21,8 @@ COPY . .
 RUN chmod +x /app/wait-for-services.sh
 
 # Tell Render which port to expose
-EXPOSE 8000  # ✅ Use 8000, as Render expects your app to bind here
+# ✅ Use 8000, as Render expects your app to bind here
+EXPOSE 8000
 
 # Use $PORT env var from Render or default to 8000
 CMD ["./wait-for-services.sh", "uvicorn", "cli_main:app", "--host", "0.0.0.0", "--port", "${PORT:-8000}"]
