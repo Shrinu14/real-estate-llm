@@ -7,3 +7,5 @@ __pycache__/
 *.log
 *.sqlite3
 node_modules/
+frontend_build/node_modules/
+

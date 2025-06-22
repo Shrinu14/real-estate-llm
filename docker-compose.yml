@@ -6,9 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: langgraph_real_estate_app_v2
-    command: ["./wait-for-services.sh", "uvicorn", "cli_main:app", "--host", "0.0.0.0", "--port", "8001"]
+    command: ["./wait-for-services.sh", "uvicorn", "cli_main:app", "--host", "0.0.0.0", "--port", "8000"]
     ports:
-      - "8001:8001"
+      - "8000:8000"
     environment:
       MILVUS_HOST: milvus-standalone-v2
       MILVUS_PORT: 19530
@@ -18,22 +18,21 @@ services:
       MONGO_HOST: mongo-v2
       MONGO_PORT: 27017
       LANGGRAPH_MULTILINGUAL: "true"
-    volumes:
-      - ./src:/app/src
-      - ./cli_main.py:/app/cli_main.py
-      - ./requirements.txt:/app/requirements.txt
-      - ./wait-for-services.sh:/app/wait-for-services.sh
+    
+    env_file:
+    - .env
+
     depends_on:
       - mongo-v2
       - redis-v2
       - milvus-standalone-v2
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8001/docs || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
       start_period: 10s
-    restart: unless-stopped
+    restart: always
 
   milvus-standalone-v2:
     image: milvusdb/milvus:v2.2.9
@@ -58,7 +57,7 @@ services:
       timeout: 10s
       retries: 10
       start_period: 60s
-    restart: unless-stopped
+    restart: always
 
   etcd-v2:
     image: quay.io/coreos/etcd:v3.5.5
@@ -71,7 +70,7 @@ services:
       - "2380:2379"
     volumes:
       - etcd_data_v2:/etcd
-    restart: unless-stopped
+    restart: always
 
   minio-v2:
     image: minio/minio:latest
@@ -90,7 +89,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: always
 
   attu-v2:
     image: zilliz/attu:v2.2.1
@@ -101,7 +100,7 @@ services:
       MILVUS_URL: http://milvus-standalone-v2:9091
     depends_on:
       - milvus-standalone-v2
-    restart: unless-stopped
+    restart: always
 
   mongo-v2:
     image: mongo:6.0
@@ -119,7 +118,7 @@ services:
       timeout: 5s
       start_period: 5s
       retries: 5
-    restart: unless-stopped
+    restart: always
 
   redis-v2:
     image: redis:7
@@ -131,7 +130,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: always
 
 volumes:
   milvus_data_v2:
